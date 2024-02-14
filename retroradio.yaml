@@ -1,0 +1,388 @@
+esphome:
+  name: retroradio
+  friendly_name: Retro Radio
+  on_boot:
+    then:
+      - light.turn_on:
+          id: ledrings
+          effect: Waiting
+          brightness: 20%
+
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+#   level: info
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: ""
+
+ota:
+  password: ""
+
+wifi:
+  # power_save_mode: none
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  # ap:
+  #   ssid: "Mictest Fallback Hotspot"
+  #   password: "ndzHUU5vBjfX"
+
+# captive_portal:
+  
+esp32_touch:
+  
+light:
+  - platform: status_led
+    name: "Status"
+    id: stat_led
+    pin: GPIO2
+
+  - platform: esp32_rmt_led_strip
+    chipset: WS2812
+    pin: GPIO4
+    rmt_channel: 0
+    num_leds: 93
+    rgb_order: GRB
+    name: "LED Rings"
+    id: ledrings
+    default_transition_length: 500ms
+    effects:
+      - pulse:
+          name: Custom Pulse
+          min_brightness: 0%
+          max_brightness: 20%
+      - addressable_rainbow:
+      - addressable_flicker:
+      - addressable_color_wipe:
+      - addressable_scan:
+          move_interval: 10ms
+      - addressable_lambda:
+          name: "Wipe In"
+          update_interval: 8ms
+          lambda: |-
+            static int x = 0;
+            if (initial_run) {
+              x = 0;
+              it.all() = ESPColor::BLACK;
+            }
+            if (x < it.size()) {
+              it[x] = current_color;
+              x += 1;
+            }
+      - automation:
+          name: Waiting
+          sequence:
+            - light.addressable_set:
+                id: ledrings
+                red: 0%
+                blue: 0%
+                green: 0%
+            - light.addressable_set:
+                id: ledrings
+                range_from: 92
+                range_to: 92
+                red: 100%
+                blue: 0%
+                green: 0%
+            - delay: 500ms
+            - light.addressable_set:
+                id: ledrings
+                red: 0%
+                blue: 0%
+                green: 0%
+            - delay: 500ms
+      - automation:
+          name: Connected
+          sequence:
+            - light.addressable_set:
+                id: ledrings
+                red: 0%
+                blue: 0%
+                green: 0%
+            - light.addressable_set:
+                id: ledrings
+                range_from: 32
+                range_to: 55
+                red: 0%
+                blue: 0%
+                green: 100%
+            - delay: 500ms
+            - light.addressable_set:
+                id: ledrings
+                red: 0%
+                blue: 0%
+                green: 0%
+            - delay: 500ms
+            - light.addressable_set:
+                id: ledrings
+                range_from: 32
+                range_to: 55
+                red: 0%
+                blue: 0%
+                green: 100%
+            - delay: 500ms
+      - automation:
+          name: Listening
+          sequence:
+            - light.addressable_set:
+                id: ledrings
+                red: 0%
+                blue: 0%
+                green: 0%
+            - light.addressable_set:
+                range_from: 0
+                range_to: 31
+                id: ledrings
+                red: 100%
+                blue: 100%
+                green: 0%
+            - delay: 100ms
+            - light.addressable_set:
+                id: ledrings
+                red: 0%
+                blue: 0%
+                green: 0%
+            - light.addressable_set:
+                id: ledrings
+                range_from: 32
+                range_to: 55
+                red: 100%
+                blue: 100%
+                green: 0%
+            - delay: 100ms
+            - light.addressable_set:
+                id: ledrings
+                red: 0%
+                blue: 0%
+                green: 0%
+            - light.addressable_set:
+                id: ledrings
+                range_from: 56
+                range_to: 71
+                red: 100%
+                blue: 100%
+                green: 0%
+            - delay: 100ms
+            - light.addressable_set:
+                id: ledrings
+                red: 0%
+                blue: 0%
+                green: 0%
+            - light.addressable_set:
+                id: ledrings
+                range_from: 72
+                range_to: 83
+                red: 100%
+                blue: 100%
+                green: 0%
+            - delay: 100ms
+            - light.addressable_set:
+                id: ledrings
+                red: 0%
+                blue: 0%
+                green: 0%
+            - light.addressable_set:
+                id: ledrings
+                range_from: 84
+                range_to: 91
+                red: 100%
+                blue: 100%
+                green: 0%
+            - delay: 100ms
+            - light.addressable_set:
+                id: ledrings
+                red: 0%
+                blue: 0%
+                green: 0%
+            - light.addressable_set:
+                id: ledrings
+                range_from: 92
+                range_to: 92
+                red: 100%
+                blue: 100%
+                green: 0%
+            - delay: 100ms
+            
+             
+i2s_audio:
+  - id: i2s_in
+    i2s_lrclk_pin: GPIO15   #TDO on esp32 mini - WS on INMP441
+    i2s_bclk_pin: GPIO14    #TMS on esp32 mini - SCK on INMP441
+  - id: i2s_out
+    i2s_lrclk_pin: GPIO13
+    i2s_bclk_pin: GPIO19
+    
+microphone:
+  - platform: i2s_audio
+    i2s_din_pin: GPIO23    #SO on INMP441
+    id: mic_1
+    i2s_audio_id: i2s_in
+    pdm: false
+    adc_type: external
+
+media_player:
+  - platform: i2s_audio
+    name: "Retro Radio"
+    id: spk_1
+    dac_type: external
+    i2s_dout_pin: GPIO22
+    mode: mono
+    i2s_audio_id: i2s_out
+
+voice_assistant:
+  microphone: mic_1
+  media_player: spk_1
+  use_wake_word: false
+
+  on_client_connected:
+    - light.turn_on:
+        id: ledrings
+        effect: Scan
+        brightness: 20%
+        red: 0%
+        blue: 0%
+        green: 100%
+    - delay: 2.33s
+    - light.turn_on:
+        id: ledrings
+        effect: Connected
+        brightness: 20%
+    - delay: 2s
+    - light.turn_off: ledrings
+
+  # on_start:
+  #   - light.turn_on:
+  #       id: ledrings
+  #       effect: Wipe In
+  #       brightness: 30%
+
+  on_listening:
+    - light.turn_on:
+        id: ledrings
+        effect: Listening
+        brightness: 20%
+
+  on_stt_end:
+    - light.turn_on:
+        id: ledrings
+        effect: Color Wipe
+        brightness: 20%
+
+  on_stt_vad_start:
+    - light.turn_on:
+        id: ledrings
+        effect: Rainbow
+        brightness: 15%
+
+  on_tts_start:
+    - light.turn_on:
+        id: ledrings
+        effect: Rainbow
+        brightness: 25%
+
+  on_tts_end:
+    - delay: 3s
+    - light.turn_off: ledrings
+
+  on_error:
+    - light.turn_on:
+        id: ledrings
+        brightness: 20%
+        effect: Addressable Flicker
+    - delay: 3s
+    - light.turn_off: ledrings
+
+  on_client_disconnected:
+      - light.turn_on:
+          id: ledrings
+          brightness: 20%
+          effect: Waiting
+
+binary_sensor:
+# Extra button
+  - platform: gpio
+    pin: 
+      number: GPIO26
+      inverted: true
+      mode:
+        input: true
+        pullup: true
+    name: "Button"
+    filters:
+      - delayed_on: 10ms
+    # on_press:
+    #   - media_player.play_media: 
+    #       media_url: 'http://192.168.1.215:8254/local/aurora-skinner.mp3'
+    on_release:
+      - light.turn_on:
+          id: ledrings
+          effect: Listening
+          brightness: 20%
+      - delay: 10s
+      - light.turn_off: ledrings
+
+# Rotary Encoder 1 Button
+  - platform: gpio
+    pin:
+      number: GPIO32
+      inverted: true
+      mode:
+        input: true
+        pullup: true
+    name: "Rotary 1 Button"
+    # on_press:
+    #   - light.turn_on:
+    #       id: ledrings
+    #       brightness: 30%
+    #       effect: Listening Effect
+    #   - delay: 10s
+    #   - light.turn_off: ledrings
+
+ # Touch pad on top     
+  - platform: esp32_touch
+    name: "Touch Pad"
+    pin: GPIO12
+    threshold: 800
+    on_press:
+      - voice_assistant.start:
+         # silence_detection: false
+    # on_release:
+    #   - voice_assistant.stop:
+
+# Rotary Encoder 1
+sensor:
+  - platform: rotary_encoder
+    name: "Rotary 1"
+    internal: true
+    min_value: 0
+    max_value: 90
+    pin_a: 
+      number: 34
+      mode:
+        input: true
+    pin_b: 
+      number: 35
+      mode:
+        input: true
+    resolution: 1
+    on_clockwise:
+      - homeassistant.service:
+          service: media_player.volume_set
+          data_template:
+            entity_id: media_player.retro_radio
+            volume_level: "{{ state_attr('media_player.retro_radio', 'volume_level') + 0.1 }}"
+    on_anticlockwise:
+      - homeassistant.service:
+          service: media_player.volume_set
+          data_template:
+            entity_id: media_player.retro_radio
+            volume_level: "{{ state_attr('media_player.retro_radio', 'volume_level') - 0.1 }}"
