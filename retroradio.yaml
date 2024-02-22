@@ -1,8 +1,9 @@
 esphome:
   name: retroradio
-  friendly_name: Retro Radio
+  friendly_name: RetroRadio
   on_boot:
     then:
+      - switch.turn_off: use_wake_word
       - light.turn_on:
           id: ledrings
           effect: Waiting
@@ -14,9 +15,7 @@ esp32:
   framework:
     type: arduino
 
-# Enable logging
 logger:
-#   level: info
 
 # Enable Home Assistant API
 api:
@@ -27,7 +26,6 @@ ota:
   password: ""
 
 wifi:
-  # power_save_mode: none
   ssid: !secret wifi_ssid
   password: !secret wifi_password
 
@@ -39,7 +37,19 @@ wifi:
 # captive_portal:
   
 esp32_touch:
-  
+
+wled:
+
+number:
+  - platform: template
+    name: LED Brightness
+    id: ledbrightness
+    min_value: 0
+    max_value: 1
+    step: .01
+    optimistic: true
+    initial_value: .20
+
 light:
   - platform: status_led
     name: "Status"
@@ -56,6 +66,7 @@ light:
     id: ledrings
     default_transition_length: 500ms
     effects:
+      - wled:
       - pulse:
           name: Custom Pulse
           min_brightness: 0%
@@ -64,7 +75,7 @@ light:
       - addressable_flicker:
       - addressable_color_wipe:
       - addressable_scan:
-          move_interval: 10ms
+          move_interval: 5ms
       - addressable_lambda:
           name: "Wipe In"
           update_interval: 8ms
@@ -110,18 +121,56 @@ light:
                 green: 0%
             - light.addressable_set:
                 id: ledrings
-                range_from: 32
-                range_to: 55
+                range_from: 92
+                range_to: 92
                 red: 0%
                 blue: 0%
                 green: 100%
-            - delay: 500ms
+            - delay: 50ms
             - light.addressable_set:
                 id: ledrings
                 red: 0%
                 blue: 0%
                 green: 0%
-            - delay: 500ms
+            - light.addressable_set:
+                id: ledrings
+                range_from: 84
+                range_to: 91
+                red: 0%
+                blue: 0%
+                green: 100%
+            - delay: 50ms
+            - light.addressable_set:
+                id: ledrings
+                red: 0%
+                blue: 0%
+                green: 0%
+            - light.addressable_set:
+                id: ledrings
+                range_from: 72
+                range_to: 83
+                red: 0%
+                blue: 0%
+                green: 100%
+            - delay: 50ms
+            - light.addressable_set:
+                id: ledrings
+                red: 0%
+                blue: 0%
+                green: 0%
+            - light.addressable_set:
+                id: ledrings
+                range_from: 56
+                range_to: 71
+                red: 0%
+                blue: 0%
+                green: 100%
+            - delay: 50ms
+            - light.addressable_set:
+                id: ledrings
+                red: 0%
+                blue: 0%
+                green: 0%
             - light.addressable_set:
                 id: ledrings
                 range_from: 32
@@ -129,7 +178,21 @@ light:
                 red: 0%
                 blue: 0%
                 green: 100%
-            - delay: 500ms
+            - delay: 50ms
+            - light.addressable_set:
+                id: ledrings
+                red: 0%
+                blue: 0%
+                green: 0%
+            - light.addressable_set:
+                id: ledrings
+                range_from: 0
+                range_to: 31
+                red: 0%
+                blue: 0%
+                green: 100%
+            - delay: 250ms
+
       - automation:
           name: Listening
           sequence:
@@ -229,25 +292,32 @@ microphone:
     pdm: false
     adc_type: external
 
-media_player:
+speaker:
   - platform: i2s_audio
-    name: "Retro Radio"
+    #name: "Retro Radio"
     id: spk_1
     dac_type: external
     i2s_dout_pin: GPIO22
-    mode: mono
+    mode: stereo
     i2s_audio_id: i2s_out
 
 voice_assistant:
+  id: va
   microphone: mic_1
-  media_player: spk_1
-  use_wake_word: false
+  speaker: spk_1
+
+  on_wake_word_detected: 
+    - light.turn_on:
+        id: ledrings
+        effect: Color Wipe
+        brightness: 20%
 
   on_client_connected:
     - light.turn_on:
         id: ledrings
         effect: Scan
-        brightness: 20%
+        brightness: !lambda |-
+          return id(ledbrightness).state;
         red: 0%
         blue: 0%
         green: 100%
@@ -255,8 +325,9 @@ voice_assistant:
     - light.turn_on:
         id: ledrings
         effect: Connected
-        brightness: 20%
-    - delay: 2s
+        brightness: !lambda |-
+          return id(ledbrightness).state;
+    - delay: 500ms
     - light.turn_off: ledrings
 
   # on_start:
@@ -269,46 +340,55 @@ voice_assistant:
     - light.turn_on:
         id: ledrings
         effect: Listening
-        brightness: 20%
+        brightness: !lambda |-
+          return id(ledbrightness).state;
 
   on_stt_end:
     - light.turn_on:
         id: ledrings
-        effect: Color Wipe
-        brightness: 20%
-
-  on_stt_vad_start:
-    - light.turn_on:
-        id: ledrings
         effect: Rainbow
-        brightness: 15%
+        brightness: !lambda |-
+          return id(ledbrightness).state;
+
+  # on_stt_vad_start:
+  #   - light.turn_on:
+  #       id: ledringsledrings
+  #       effect: Rainbow
+  #       brightness: 15%
 
   on_tts_start:
     - light.turn_on:
         id: ledrings
         effect: Rainbow
-        brightness: 25%
+        brightness: !lambda |-
+          return id(ledbrightness).state;
 
   on_tts_end:
+    - delay: 3s
+    - light.turn_off: ledrings
+
+  on_end:
     - delay: 3s
     - light.turn_off: ledrings
 
   on_error:
     - light.turn_on:
         id: ledrings
-        brightness: 20%
+        brightness: !lambda |-
+          return id(ledbrightness).state;
         effect: Addressable Flicker
     - delay: 3s
     - light.turn_off: ledrings
 
   on_client_disconnected:
-      - light.turn_on:
-          id: ledrings
-          brightness: 20%
-          effect: Waiting
+    - light.turn_on:
+        id: ledrings
+        brightness: !lambda |-
+          return id(ledbrightness).state;
+        effect: Waiting
 
 binary_sensor:
-# Extra button
+# Rear button
   - platform: gpio
     pin: 
       number: GPIO26
@@ -316,19 +396,18 @@ binary_sensor:
       mode:
         input: true
         pullup: true
-    name: "Button"
+    name: "Rear Button"
     filters:
       - delayed_on: 10ms
-    # on_press:
-    #   - media_player.play_media: 
-    #       media_url: 'http://192.168.1.215:8254/local/aurora-skinner.mp3'
-    on_release:
-      - light.turn_on:
-          id: ledrings
-          effect: Listening
-          brightness: 20%
-      - delay: 10s
-      - light.turn_off: ledrings
+    on_click:
+    - min_length: 10ms
+      max_length: 400ms
+      then:
+        - light.toggle: ledrings
+    - min_length: 3s
+      max_length: 5s
+      then:
+        - button.press: reboot_button
 
 # Rotary Encoder 1 Button
   - platform: gpio
@@ -339,13 +418,20 @@ binary_sensor:
         input: true
         pullup: true
     name: "Rotary 1 Button"
-    # on_press:
-    #   - light.turn_on:
-    #       id: ledrings
-    #       brightness: 30%
-    #       effect: Listening Effect
-    #   - delay: 10s
-    #   - light.turn_off: ledrings
+    on_press:
+      - switch.toggle: use_wake_word
+
+# Rotary Encoder 2 Button
+  - platform: gpio
+    pin:
+      number: GPIO5
+      inverted: true
+      mode:
+        input: true
+        pullup: true
+    name: "Rotary 2 Button"
+    on_press:
+      - switch.toggle: use_wled
 
  # Touch pad on top     
   - platform: esp32_touch
@@ -358,7 +444,7 @@ binary_sensor:
     # on_release:
     #   - voice_assistant.stop:
 
-# Rotary Encoder 1
+# Rotary Encoder 1 (Large dial)
 sensor:
   - platform: rotary_encoder
     name: "Rotary 1"
@@ -374,15 +460,87 @@ sensor:
       mode:
         input: true
     resolution: 1
-    on_clockwise:
-      - homeassistant.service:
-          service: media_player.volume_set
-          data_template:
-            entity_id: media_player.retro_radio
-            volume_level: "{{ state_attr('media_player.retro_radio', 'volume_level') + 0.1 }}"
-    on_anticlockwise:
-      - homeassistant.service:
-          service: media_player.volume_set
-          data_template:
-            entity_id: media_player.retro_radio
-            volume_level: "{{ state_attr('media_player.retro_radio', 'volume_level') - 0.1 }}"
+    # on_clockwise:
+    #   - homeassistant.service:
+    #       service: media_player.volume_set
+    #       data_template:
+    #         entity_id: media_player.retro_radio
+    #         volume_level: "{{ state_attr('media_player.retro_radio', 'volume_level') + 0.1 }}"
+    # on_anticlockwise:
+    #   - homeassistant.service:
+    #       service: media_player.volume_set
+    #       data_template:
+    #         entity_id: media_player.retro_radio
+    #         volume_level: "{{ state_attr('media_player.retro_radio', 'volume_level') - 0.1 }}"
+
+# Rotary Encoder 2 (Small dial)
+  - platform: rotary_encoder
+    name: "Rotary 2"
+    id: led_brightness
+    internal: true
+    pin_a: 
+      number: 21
+      mode:
+        input: true
+    pin_b: 
+      number: 18
+      mode:
+        input: true
+    resolution: 4
+    min_value: 0
+    max_value: 100
+    filters:
+      - or:
+        - debounce: 0.1s
+        - delta: 10
+    on_value:
+      then:
+        - number.set:
+            id: ledbrightness
+            value: !lambda |-
+              return id(led_brightness).state / 100;
+
+
+switch:
+  - platform: template
+    name: Use wake word
+    id: use_wake_word
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    entity_category: config
+    on_turn_on:
+      - lambda: id(va).set_use_wake_word(true);
+      - if:
+          condition:
+            not:
+              - voice_assistant.is_running
+          then:
+            - voice_assistant.start_continuous
+    on_turn_off:
+      - voice_assistant.stop
+      - lambda: id(va).set_use_wake_word(false);
+
+  - platform: template
+    name: Use WLED
+    id: use_wled
+    restore_mode: RESTORE_DEFAULT_OFF
+    optimistic: true
+    turn_on_action:
+      - light.turn_on:
+          id: ledrings
+          effect: wled
+          brightness: !lambda |-
+            return id(ledbrightness).state;
+    turn_off_action:
+      - light.turn_on:
+          id: ledrings
+          effect: none
+          brightness: !lambda |-
+            return id(ledbrightness).state;
+      - delay: 1s
+      - light.turn_off: ledrings
+
+button:
+  - platform: restart
+    id: reboot_button
+    name: "Restart"
