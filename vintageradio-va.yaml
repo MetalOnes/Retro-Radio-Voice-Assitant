@@ -1,6 +1,6 @@
 esphome:
-  name: retroradio
-  friendly_name: RetroRadio
+  name: vintageradio
+  friendly_name: Vintage Radio
   on_boot:
     then:
       - switch.turn_off: use_wake_word
