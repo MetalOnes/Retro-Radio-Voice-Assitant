@@ -294,7 +294,7 @@ microphone:
 
 speaker:
   - platform: i2s_audio
-    #name: "Retro Radio"
+    #name: "vintage Radio"
     id: spk_1
     dac_type: external
     i2s_dout_pin: GPIO22
@@ -464,14 +464,14 @@ sensor:
     #   - homeassistant.service:
     #       service: media_player.volume_set
     #       data_template:
-    #         entity_id: media_player.retro_radio
-    #         volume_level: "{{ state_attr('media_player.retro_radio', 'volume_level') + 0.1 }}"
+    #         entity_id: media_player.vintage_radio
+    #         volume_level: "{{ state_attr('media_player.vintage_radio', 'volume_level') + 0.1 }}"
     # on_anticlockwise:
     #   - homeassistant.service:
     #       service: media_player.volume_set
     #       data_template:
-    #         entity_id: media_player.retro_radio
-    #         volume_level: "{{ state_attr('media_player.retro_radio', 'volume_level') - 0.1 }}"
+    #         entity_id: media_player.vintage_radio
+    #         volume_level: "{{ state_attr('media_player.vintage_radio', 'volume_level') - 0.1 }}"
 
 # Rotary Encoder 2 (Small dial)
   - platform: rotary_encoder
