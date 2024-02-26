@@ -1,9 +1,9 @@
-# Retro-Radio-Voice-Assitant
+# Vintage Radio Voice Assitant
 A project to create a voice assistant using ESPHome, using an old Emerson AM radio as the housing.
 
 ![PXL_20240219_224614973 NIGHT](https://github.com/MetalOnes/Retro-Radio-Voice-Assitant/assets/28925077/d192386d-894e-434b-9f1e-d1b431048321)
 
-More info/photos on my blog: https://blog.evilrobot.space/projects/retro-radio-voice-assistant/
+[More info/photos on my blog](https://blog.evilrobot.space/projects/retro-radio-voice-assistant/)
 
 ## Parts Used
 - ESP32
